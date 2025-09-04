@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -19,6 +14,8 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [chats, setChats] = useState(null);
+  const [users, setUsers] = useState(null);
 
   async function fetchUser() {
     try {
@@ -46,7 +43,6 @@ export const AppProvider = ({ children }) => {
     toast.success("User Logged Out");
   }
 
-  const [chats, setChats] = useState(null);
   async function fetchChats() {
     const token = Cookies.get("token");
     try {
@@ -61,8 +57,6 @@ export const AppProvider = ({ children }) => {
       console.log(error);
     }
   }
-
-  const [users, setUsers] = useState(null);
 
   async function fetchUsers() {
     const token = Cookies.get("token");
@@ -115,4 +109,3 @@ export const useAppData = () => {
   }
   return context;
 };
-

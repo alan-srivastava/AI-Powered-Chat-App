@@ -6,26 +6,24 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "chat-images",
-    allowed_formats: ["jpg", "png", "jpeg", "gif", "webp"],
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
     transformation: [
       { width: 800, height: 600, crop: "limit" },
-      { quality: "auto" }
+      { quality: "auto" },
     ],
   },
 });
 
-const upload = multer({
+export const upload = multer({
   storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5 MB
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("/image/")) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed!"));
+      cb(new Error("only image allowed"));
     }
-  }
+  },
 });
-
-export { storage, upload };

@@ -96,7 +96,7 @@ const VerifyOtp = () => {
       fetchChats();
       fetchUsers();
     } catch (error) {
-      setError(error.response?.data?.message || "Verification failed");
+      setError(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ const VerifyOtp = () => {
       toast.success(data.message);
       setTimer(60);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to resend code");
+      setError(error.response?.data?.message || "Something went wrong");
     } finally {
       setResendLoading(false);
     }
@@ -180,7 +180,7 @@ const VerifyOtp = () => {
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   Verifying...
                 </div>
               ) : (
