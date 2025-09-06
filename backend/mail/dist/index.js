@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { startSendOtpConsumer } from './consumer.js';
+//const { startSendOtpConsumer } = require("./consumer.js");
+import { startSendOtpConsumer } from "./consumer.js";
 
 dotenv.config();
 startSendOtpConsumer();

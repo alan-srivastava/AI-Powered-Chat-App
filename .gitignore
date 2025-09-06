@@ -1,0 +1,9 @@
+# Node modules
+node_modules/
+
+# Build folders
+dist/
+.next/
+
+# Environment variables
+*.env

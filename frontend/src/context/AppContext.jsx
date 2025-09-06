@@ -94,6 +94,8 @@ export const AppProvider = ({ children }) => {
         chats,
         users,
         setChats,
+        chat_service,
+        user_service,
       }}
     >
       {children}

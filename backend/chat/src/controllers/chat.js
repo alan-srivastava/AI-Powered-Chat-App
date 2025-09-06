@@ -3,6 +3,7 @@ import TryCatch from "../config/TryCatch.js";
 import { Chat } from "../models/Chat.js";
 import { Messages } from "../models/Messages.js";
 import { getRecieverSocketId, io } from "../config/socket.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const createNewChat = TryCatch(async (req, res) => {
   const userId = req.user?._id;
@@ -313,6 +314,55 @@ export const getMessagesByChat = TryCatch(async (req, res) => {
     res.json({
       messages,
       user: { _id: otherUserId, name: "Unknown User" },
+    });
+  }
+});
+
+export const getSuggestions = TryCatch(async (req, res) => {
+  const { partialMessage } = req.body;
+
+  if (!partialMessage || partialMessage.trim().length < 3) {
+    return res.status(400).json({
+      message: "Partial message must be at least 3 characters long",
+    });
+  }
+
+  console.log("GEMINI KEY:", process.env.GEMINI_API_KEY ? "Loaded ✅" : "Missing ❌");
+
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({
+      message: "Gemini API key not configured",
+    });
+  }
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  try {
+    const prompt = `You are a helpful assistant that provides word and phrase suggestions for chat messages. Provide 3-5 short, relevant suggestions based on the partial input. Keep suggestions concise and natural for casual conversation.
+
+Complete this message: "${partialMessage}"
+
+Please provide suggestions as a numbered list, one per line.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // Parse the suggestions from the response
+    const suggestions = text
+      .split('\n')
+      .map(line => line.replace(/^\d+\.\s*/, '').trim()) // Remove numbering
+      .filter(s => s.length > 0 && s.length < 100) // Filter out empty or too long suggestions
+      .slice(0, 5); // Limit to 5 suggestions
+
+    res.json({
+      suggestions,
+    });
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    res.status(500).json({
+      message: "Failed to get suggestions",
     });
   }
 });

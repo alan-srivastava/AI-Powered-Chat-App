@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
-//import moment from "moment";
+import moment from "moment";
 import { Check, CheckCheck } from "lucide-react";
 
 const ChatMessages = ({ selectedUser, messages, loggedInUser }) => {
@@ -67,14 +67,16 @@ const ChatMessages = ({ selectedUser, messages, loggedInUser }) => {
                       isSentByMe ? "pr-2 flex-row-reverse" : "pl-2"
                     }`}
                   >
-                     
+                     <span>{moment(e.createdAt).format("hh:mm A . MMM D")}</span>
 
                     {isSentByMe && (
                       <div className="flex items-center ml-1">
                         {e.seen ? (
                           <div className="flex items-center gap-1 text-blue-400">
                             <CheckCheck className="w-3 h-3" />
-                            
+                            {e.seenAt && (
+                              <span>{moment(e.seenAt).format("hh:mm A")}</span>
+                            )}
                           </div>
                         ) : (
                           <Check className="w-3 h-3 text-gray-500" />

@@ -1,5 +1,8 @@
 import { Loader2, Paperclip, Send, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { useAppData } from "../context/AppContext";
 
 const MessageInput = ({
   selectedUser,
@@ -9,6 +12,85 @@ const MessageInput = ({
 }) => {
   const [imageFile, setImageFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [currentSuggestion, setCurrentSuggestion] = useState("");
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const { chat_service } = useAppData();
+  const inputRef = useRef(null);
+  const debounceTimer = useRef(null);
+
+  const fetchSuggestions = async (partialMessage) => {
+    // Extract the current word being typed (from last space to end)
+    const words = partialMessage.split(' ');
+    const currentWord = words[words.length - 1];
+
+    if (currentWord.length < 3) {
+      setSuggestions([]);
+      setCurrentSuggestion("");
+      return;
+    }
+
+    setIsLoadingSuggestions(true);
+    try {
+      const token = Cookies.get("token") || "";
+      if (!token) {
+        throw new Error("No auth token found");
+      }
+      const response = await axios.post(
+        `${chat_service}/api/v1/suggestions`,
+        { partialMessage: currentWord },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const suggestionList = response.data.suggestions || [];
+      setSuggestions(suggestionList);
+
+      // Create full message suggestion by replacing the current word
+      if (suggestionList[0]) {
+        const fullMessage = partialMessage.replace(/\w+$/, suggestionList[0]);
+        setCurrentSuggestion(fullMessage);
+      } else {
+        setCurrentSuggestion("");
+      }
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      setSuggestions([]);
+      setCurrentSuggestion("");
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setMessage(value);
+
+    // Clear suggestion if user types something that doesn't match
+    if (currentSuggestion && !currentSuggestion.toLowerCase().startsWith(value.toLowerCase())) {
+      setCurrentSuggestion("");
+      setSuggestions([]);
+    }
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      fetchSuggestions(value);
+    }, 500);
+  };
+
+  const handleKeyDown = (e) => {
+    if ((e.key === "Tab" || e.key === "ArrowRight") && currentSuggestion && currentSuggestion !== message) {
+      e.preventDefault();
+      setMessage(currentSuggestion);
+      setCurrentSuggestion("");
+      setSuggestions([]);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,6 +100,8 @@ const MessageInput = ({
     await handleMessageSend(e, imageFile);
     setImageFile(null);
     setIsUploading(false);
+    setCurrentSuggestion("");
+    setSuggestions([]);
   };
 
   if (!selectedUser) return null;
@@ -60,13 +144,27 @@ const MessageInput = ({
           />
         </label>
 
-        <input
-          type="text"
-          className="flex-1 bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400"
-          placeholder={imageFile ? "Add a caption..." : "Type a message..."}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
+        <div className="relative flex-1">
+          <div className="relative">
+            <input
+              ref={inputRef}
+              type="text"
+              className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400"
+              placeholder={imageFile ? "Add a caption..." : "Type a message..."}
+              value={message}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+            {currentSuggestion && currentSuggestion !== message && (
+              <div className="absolute inset-0 px-4 py-2 pointer-events-none flex items-center">
+                <span className="text-white">{message}</span>
+                <span className="text-gray-500 opacity-70">
+                  {currentSuggestion.slice(message.length)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
 
         <button
           type="submit"
