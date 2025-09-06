@@ -43,5 +43,27 @@ Connect Instantly, Communicate Limitlessly, Empower Conversations
 ### Installation
 
 1. Clone the repo:
-   ```bash
+   
    git clone https://github.com/alan-srivastava/AI-Powered-Chat-App.git
+
+2. Install dependencies:
+
+   npm install
+
+
+3. Create a .env file and configure your environment variables (MongoDB URI, RabbitMQ, Gemini API key, etc.)
+
+4. Start the server:
+
+   npm run dev
+
+<img width="1915" height="967" alt="Screenshot 2025-09-06 170734" src="https://github.com/user-attachments/assets/bf58710a-4701-4e76-9249-e5b46b3d0708" />
+Usage
+
+Open your frontend in a browser.
+
+Sign up or log in.
+
+Start chatting with AI-powered responses.
+
+Upload media files if needed.
